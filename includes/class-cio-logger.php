@@ -6,13 +6,8 @@ if (!defined('ABSPATH')) {
 
 /**
  * Logger estructurado del plugin Clevers Image Optimizer.
- *
- * Centraliza las llamadas a `error_log` con un nivel de severidad y un
- * contexto serializable, de modo que las herramientas de observabilidad
- * (logs de WP, sumarios CI, dashboards externos) puedan filtrar y
- * correlacionar eventos.
  */
-class CIO_Logger
+class Clevers_IO_Logger
 {
     public const DEBUG = 'debug';
     public const INFO  = 'info';
@@ -29,6 +24,10 @@ class CIO_Logger
      */
     public static function log(string $severity, string $message, array $context = [], ?string $channel = null)
     {
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            return;
+        }
+
         $severity = self::normaliseSeverity($severity);
 
         $payload = [
@@ -40,19 +39,12 @@ class CIO_Logger
             'ts'       => gmdate('c'),
         ];
 
-        if (!defined('WP_DEBUG') || !WP_DEBUG) {
-            return;
-        }
-
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         error_log('[clevers-image-optimizer] ' . $severity . ' ' . wp_json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
     public static function debug(string $message, array $context = [], ?string $channel = null): void
     {
-        if (!defined('WP_DEBUG') || !WP_DEBUG) {
-            return;
-        }
         self::log(self::DEBUG, $message, $context, $channel);
     }
 
@@ -79,4 +71,8 @@ class CIO_Logger
         }
         return $severity;
     }
+}
+
+if (!class_exists('CIO_Logger', false)) {
+    class_alias('Clevers_IO_Logger', 'CIO_Logger');
 }

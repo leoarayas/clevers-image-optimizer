@@ -4,7 +4,7 @@ Donate link: https://clevers.dev
 Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
 Tested up to: 7.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -47,6 +47,17 @@ The plugin shows capability status in settings. If `imageavif` is not available,
 No, if you use the official release ZIP. Composer is only needed for local development and CI.
 
 == Changelog ==
+= 1.0.2 =
+* Compliance: Remove "Tested up to" from main PHP file (declared in readme.txt only).
+* Scripts: Properly enqueue Media Library script with wp_enqueue_script() instead of inline script tags.
+* Prefixing: Update all functions, classes, options, hooks and constants to use unique prefix clevers_io_ (4+ characters).
+* Dependencies: Upgrade spatie/image-optimizer to latest version 1.10.0.
+* Activation: Remove wp_die() blocker on activation, moving requirement check to admin notices.
+
+= 1.0.1 =
+* Tested up to WordPress 7.1.
+* Code standards and plugin review preparations.
+
 = 0.3.0 =
 * Added: background optimization queue with batch/time limits.
 * Added: Media Library bulk action now queues jobs (non-blocking admin request).

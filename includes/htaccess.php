@@ -1,14 +1,15 @@
 <?php
 
+if (!defined('ABSPATH')) {
+    exit;
+}
 
-if (!defined('ABSPATH')) exit;
-
-function cio_get_htaccess_path()
+function clevers_io_get_htaccess_path()
 {
     return ABSPATH . '.htaccess';
 }
 
-function cio_get_rules_block()
+function clevers_io_get_rules_block()
 {
     return implode(
         "\n",
@@ -39,9 +40,9 @@ function cio_get_rules_block()
     );
 }
 
-function cio_rules_exist()
+function clevers_io_rules_exist()
 {
-    $path = cio_get_htaccess_path();
+    $path = clevers_io_get_htaccess_path();
     if (!file_exists($path)) {
         return false;
     }
@@ -54,20 +55,19 @@ function cio_rules_exist()
     return strpos($contents, '# BEGIN Clever_Image_Optimizer') !== false;
 }
 
-function cio_add_htaccess_rules()
+function clevers_io_add_htaccess_rules()
 {
-    $path = cio_get_htaccess_path();
-    $rules = cio_get_rules_block();
+    $path = clevers_io_get_htaccess_path();
+    $rules = clevers_io_get_rules_block();
 
-    // Si no existe .htaccess lo creamos
     if (!file_exists($path)) {
         return false !== file_put_contents($path, $rules . PHP_EOL);
     }
 
-    // Si ya existen las reglas, no hacemos nada
-    if (cio_rules_exist()) return true;
+    if (clevers_io_rules_exist()) {
+        return true;
+    }
 
-    // Append al final del archivo
     $contents = file_get_contents($path);
     if ($contents === false) {
         return false;
@@ -77,9 +77,9 @@ function cio_add_htaccess_rules()
     return false !== file_put_contents($path, $contents);
 }
 
-function cio_remove_htaccess_rules()
+function clevers_io_remove_htaccess_rules()
 {
-    $path = cio_get_htaccess_path();
+    $path = clevers_io_get_htaccess_path();
     if (!file_exists($path)) {
         return;
     }

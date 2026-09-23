@@ -4,57 +4,68 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class CIO_Admin
+class Clevers_IO_Admin
 {
-    /** @var CIO_Optimizer */
     private $optimizer;
 
-    public function __construct(CIO_Optimizer $optimizer)
+    public function __construct(Clevers_IO_Optimizer $optimizer)
     {
         $this->optimizer = $optimizer;
 
-        add_action('admin_menu', [$this, 'add_admin_menu']);
+        add_action('admin_menu', [$this, 'add_settings_page']);
         add_action('admin_init', [$this, 'register_settings']);
+        add_action('admin_notices', [$this, 'check_dependencies_notice']);
     }
 
-    public function add_admin_menu()
+    public function check_dependencies_notice()
+    {
+        if (!extension_loaded('gd') && !extension_loaded('imagick')) {
+            printf(
+                '<div class="notice notice-warning is-dismissible"><p><strong>%s:</strong> %s</p></div>',
+                esc_html__('Clevers Image Optimizer', 'clevers-image-optimizer'),
+                wp_kses_post(__('Se requiere la extensión PHP <strong>GD</strong> o <strong>Imagick</strong> para generar imágenes WebP/AVIF.', 'clevers-image-optimizer'))
+            );
+        }
+    }
+
+    public function add_settings_page()
     {
         add_options_page(
             __('Clevers Image Optimizer', 'clevers-image-optimizer'),
-            __('Clevers Image Optimizer', 'clevers-image-optimizer'),
+            __('Clevers Optimizer', 'clevers-image-optimizer'),
             'manage_options',
-            'clever-image-optimizer',
+            'clevers-image-optimizer',
             [$this, 'settings_page']
         );
     }
 
     public function register_settings()
     {
-        register_setting('cio_settings_group', 'cio_webp_quality', [
+        register_setting('clevers_io_settings_group', 'clevers_io_webp_quality', [
             'type' => 'integer',
             'default' => 80,
             'sanitize_callback' => [$this, 'sanitize_quality'],
         ]);
 
-        register_setting('cio_settings_group', 'cio_enable_avif', [
-            'type' => 'boolean',
-            'default' => false,
+        register_setting('clevers_io_settings_group', 'clevers_io_enable_avif', [
+            'type' => 'string',
+            'default' => '0',
             'sanitize_callback' => [$this, 'sanitize_checkbox'],
         ]);
 
-        register_setting('cio_settings_group', 'cio_avif_quality', [
+        register_setting('clevers_io_settings_group', 'clevers_io_avif_quality', [
             'type' => 'integer',
             'default' => 80,
             'sanitize_callback' => [$this, 'sanitize_quality'],
         ]);
 
-        register_setting('cio_settings_group', 'cio_batch_limit', [
+        register_setting('clevers_io_settings_group', 'clevers_io_batch_limit', [
             'type' => 'integer',
             'default' => 10,
             'sanitize_callback' => [$this, 'sanitize_batch_limit'],
         ]);
 
-        register_setting('cio_settings_group', 'cio_time_limit', [
+        register_setting('clevers_io_settings_group', 'clevers_io_time_limit', [
             'type' => 'integer',
             'default' => 20,
             'sanitize_callback' => [$this, 'sanitize_time_limit'],
@@ -63,8 +74,7 @@ class CIO_Admin
 
     public function sanitize_quality($value)
     {
-        // PENDIENTE 2: Delegamos en CIO_Utils para eliminar la implementación duplicada.
-        return CIO_Utils::sanitize_quality($value, 0, 100, 80);
+        return Clevers_IO_Utils::sanitize_quality($value, 0, 100, 80);
     }
 
     public function sanitize_batch_limit($value)
@@ -100,14 +110,14 @@ class CIO_Admin
 
         $this->handle_htaccess_actions();
 
-        $rules_active = cio_rules_exist();
+        $rules_active = clevers_io_rules_exist();
         $avif_supported = function_exists('imageavif');
         $queue_count = $this->optimizer->get_queue_count();
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('Clevers Image Optimizer', 'clevers-image-optimizer'); ?></h1>
 
-            <?php settings_errors('cio_messages'); ?>
+            <?php settings_errors('clevers_io_messages'); ?>
 
             <?php if ($queue_count > 0) : ?>
                 <div class="notice notice-info">
@@ -131,20 +141,20 @@ class CIO_Admin
             <?php endif; ?>
 
             <form method="post" action="options.php">
-                <?php settings_fields('cio_settings_group'); ?>
+                <?php settings_fields('clevers_io_settings_group'); ?>
 
                 <table class="form-table">
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Calidad WebP (0-100)', 'clevers-image-optimizer'); ?></th>
                         <td>
-                            <input type="number" name="cio_webp_quality" value="<?php echo esc_attr(get_option('cio_webp_quality', 80)); ?>" min="0" max="100" />
+                            <input type="number" name="clevers_io_webp_quality" value="<?php echo esc_attr(get_option('clevers_io_webp_quality', get_option('cio_webp_quality', 80))); ?>" min="0" max="100" />
                         </td>
                     </tr>
 
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Habilitar AVIF', 'clevers-image-optimizer'); ?></th>
                         <td>
-                            <input type="checkbox" name="cio_enable_avif" value="1" <?php checked('1', (string) get_option('cio_enable_avif', '0')); ?> />
+                            <input type="checkbox" name="clevers_io_enable_avif" value="1" <?php checked('1', (string) get_option('clevers_io_enable_avif', get_option('cio_enable_avif', '0'))); ?> />
                             <p class="description">
                                 <?php if ($avif_supported) : ?>
                                     <span style="color:green;"><?php esc_html_e('Tu servidor soporta AVIF.', 'clevers-image-optimizer'); ?></span>
@@ -158,14 +168,14 @@ class CIO_Admin
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Calidad AVIF (0-100)', 'clevers-image-optimizer'); ?></th>
                         <td>
-                            <input type="number" name="cio_avif_quality" value="<?php echo esc_attr(get_option('cio_avif_quality', 80)); ?>" min="0" max="100" />
+                            <input type="number" name="clevers_io_avif_quality" value="<?php echo esc_attr(get_option('clevers_io_avif_quality', get_option('cio_avif_quality', 80))); ?>" min="0" max="100" />
                         </td>
                     </tr>
 
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Lote por ejecución', 'clevers-image-optimizer'); ?></th>
                         <td>
-                            <input type="number" name="cio_batch_limit" value="<?php echo esc_attr(get_option('cio_batch_limit', 10)); ?>" min="1" max="100" />
+                            <input type="number" name="clevers_io_batch_limit" value="<?php echo esc_attr(get_option('clevers_io_batch_limit', get_option('cio_batch_limit', 10))); ?>" min="1" max="100" />
                             <p class="description"><?php esc_html_e('Cantidad máxima de adjuntos procesados por cada corrida en background.', 'clevers-image-optimizer'); ?></p>
                         </td>
                     </tr>
@@ -173,7 +183,7 @@ class CIO_Admin
                     <tr valign="top">
                         <th scope="row"><?php esc_html_e('Límite de tiempo por ejecución (seg)', 'clevers-image-optimizer'); ?></th>
                         <td>
-                            <input type="number" name="cio_time_limit" value="<?php echo esc_attr(get_option('cio_time_limit', 20)); ?>" min="5" max="120" />
+                            <input type="number" name="clevers_io_time_limit" value="<?php echo esc_attr(get_option('clevers_io_time_limit', get_option('cio_time_limit', 20))); ?>" min="5" max="120" />
                             <p class="description"><?php esc_html_e('Evita timeouts al procesar lotes grandes.', 'clevers-image-optimizer'); ?></p>
                         </td>
                     </tr>
@@ -195,10 +205,10 @@ class CIO_Admin
             </p>
 
             <form method="post">
-                <?php wp_nonce_field('cio_htaccess_action', 'cio_htaccess_nonce'); ?>
+                <?php wp_nonce_field('clevers_io_htaccess_action', 'clevers_io_htaccess_nonce'); ?>
                 <p>
-                    <input type="submit" name="cio_add_rules" class="button button-secondary" value="<?php esc_attr_e('Activar reglas WebP/AVIF en .htaccess', 'clevers-image-optimizer'); ?>">
-                    <input type="submit" name="cio_remove_rules" class="button button-secondary" value="<?php esc_attr_e('Eliminar reglas del .htaccess', 'clevers-image-optimizer'); ?>" style="margin-left:10px;">
+                    <input type="submit" name="clevers_io_add_rules" class="button button-secondary" value="<?php esc_attr_e('Activar reglas WebP/AVIF en .htaccess', 'clevers-image-optimizer'); ?>">
+                    <input type="submit" name="clevers_io_remove_rules" class="button button-secondary" value="<?php esc_attr_e('Eliminar reglas del .htaccess', 'clevers-image-optimizer'); ?>" style="margin-left:10px;">
                 </p>
             </form>
         </div>
@@ -211,27 +221,30 @@ class CIO_Admin
             return;
         }
 
-        if (!isset($_POST['cio_htaccess_nonce'])) {
+        if (!isset($_POST['clevers_io_htaccess_nonce'])) {
             return;
         }
 
-        $nonce = sanitize_text_field(wp_unslash($_POST['cio_htaccess_nonce']));
-        if (!wp_verify_nonce($nonce, 'cio_htaccess_action')) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['clevers_io_htaccess_nonce']));
+        if (!wp_verify_nonce($nonce, 'clevers_io_htaccess_action')) {
             return;
         }
 
-        if (isset($_POST['cio_add_rules'])) {
-            if (cio_add_htaccess_rules()) {
-                add_settings_error('cio_messages', 'cio_message', __('Reglas añadidas correctamente al .htaccess.', 'clevers-image-optimizer'), 'updated');
+        if (isset($_POST['clevers_io_add_rules'])) {
+            if (clevers_io_add_htaccess_rules()) {
+                add_settings_error('clevers_io_messages', 'clevers_io_message', __('Reglas añadidas correctamente al .htaccess.', 'clevers-image-optimizer'), 'updated');
             } else {
-                add_settings_error('cio_messages', 'cio_message', __('No se pudo escribir en el .htaccess. Revisa permisos.', 'clevers-image-optimizer'), 'error');
+                add_settings_error('clevers_io_messages', 'clevers_io_message', __('No se pudo escribir en el .htaccess. Revisa permisos.', 'clevers-image-optimizer'), 'error');
             }
         }
 
-        if (isset($_POST['cio_remove_rules'])) {
-            cio_remove_htaccess_rules();
-            add_settings_error('cio_messages', 'cio_message', __('Reglas eliminadas del .htaccess.', 'clevers-image-optimizer'), 'updated');
+        if (isset($_POST['clevers_io_remove_rules'])) {
+            clevers_io_remove_htaccess_rules();
+            add_settings_error('clevers_io_messages', 'clevers_io_message', __('Reglas eliminadas del .htaccess.', 'clevers-image-optimizer'), 'updated');
         }
-        // Los mensajes se renderizan dentro de settings_page() en la posición correcta del DOM.
     }
+}
+
+if (!class_exists('CIO_Admin', false)) {
+    class_alias('Clevers_IO_Admin', 'CIO_Admin');
 }

@@ -7,11 +7,10 @@ if (!defined('ABSPATH')) {
 /**
  * Utilidades estáticas compartidas del plugin Clevers Image Optimizer.
  */
-class CIO_Utils
+class Clevers_IO_Utils
 {
     /**
      * Sanitiza un valor de calidad de imagen asegurando que quede dentro del rango [min, max].
-     * Si el valor casteado a entero queda fuera del rango, devuelve $default.
      *
      * @param mixed $value   Valor a sanitizar.
      * @param int   $min     Valor mínimo permitido (por defecto 1).
@@ -24,7 +23,6 @@ class CIO_Utils
         $value = (int) $value;
 
         if ($value < $min || $value > $max) {
-            // Intentar clamping en lugar de usar default para valores cercanos a los límites.
             if ($value < $min) {
                 return $min;
             }
@@ -33,4 +31,8 @@ class CIO_Utils
 
         return $value;
     }
+}
+
+if (!class_exists('CIO_Utils', false)) {
+    class_alias('Clevers_IO_Utils', 'CIO_Utils');
 }
