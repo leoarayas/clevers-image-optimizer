@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Clever Image Optimizer
+ * Plugin Name: Clevers Image Optimizer
  * Description: Optimización local de imágenes + WebP + AVIF para sitios gestionados por Clever.
  * Author: Clevers.dev
  * Version: 1.0.1
@@ -51,7 +51,7 @@ register_activation_hook(__FILE__, function () {
         $message .= '<p><a href="' . esc_url(admin_url('plugins.php')) . '">' . esc_html__('Volver a plugins', 'clevers-image-optimizer') . '</a></p>';
         wp_die(
             wp_kses_post($message),
-            esc_html__('Clever Image Optimizer - Requisitos no cumplidos', 'clevers-image-optimizer')
+            esc_html__('Clevers Image Optimizer - Requisitos no cumplidos', 'clevers-image-optimizer')
         );
     }
 });

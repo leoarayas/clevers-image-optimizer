@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Logger estructurado del plugin Clever Image Optimizer.
+ * Logger estructurado del plugin Clevers Image Optimizer.
  *
  * Centraliza las llamadas a `error_log` con un nivel de severidad y un
  * contexto serializable, de modo que las herramientas de observabilidad

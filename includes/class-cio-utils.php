@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Utilidades estáticas compartidas del plugin Clever Image Optimizer.
+ * Utilidades estáticas compartidas del plugin Clevers Image Optimizer.
  */
 class CIO_Utils
 {

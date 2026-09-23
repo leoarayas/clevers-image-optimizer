@@ -1,7 +1,7 @@
-=== Clever Image Optimizer ===
+=== Clevers Image Optimizer ===
 Contributors: cleversdevs
 Donate link: https://clevers.dev
-Tags: image optimization, webp, avif, media library, performance
+Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
 Tested up to: 6.9
 Stable tag: 1.0.1
@@ -9,10 +9,10 @@ Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Clever Image Optimizer compresses local WordPress images and generates modern WebP and optional AVIF files.
+Clevers Image Optimizer compresses local WordPress images and generates modern WebP and optional AVIF files.
 
 == Description ==
-Clever Image Optimizer optimizes local WordPress images and generates modern formats (`.webp` and optional `.avif`).
+Clevers Image Optimizer optimizes local WordPress images and generates modern formats (`.webp` and optional `.avif`).
 
 Since version 0.3.0, processing runs in the background with queueing and batch/time limits to avoid admin timeouts during large uploads.
 
@@ -33,7 +33,7 @@ This plugin uses Composer as the source of truth for dependencies.
 == Installation ==
 1. Upload the plugin to `/wp-content/plugins/clevers-image-optimizer` or install it from the release ZIP.
 2. Activate it in WordPress.
-3. Go to `Settings > Clever Image Optimizer`.
+3. Go to `Settings > Clevers Image Optimizer`.
 4. Configure WebP/AVIF quality and background processing limits.
 
 == Frequently Asked Questions ==

@@ -20,8 +20,8 @@ class CIO_Admin
     public function add_admin_menu()
     {
         add_options_page(
-            __('Clever Image Optimizer', 'clevers-image-optimizer'),
-            __('Clever Image Optimizer', 'clevers-image-optimizer'),
+            __('Clevers Image Optimizer', 'clevers-image-optimizer'),
+            __('Clevers Image Optimizer', 'clevers-image-optimizer'),
             'manage_options',
             'clever-image-optimizer',
             [$this, 'settings_page']
@@ -105,7 +105,7 @@ class CIO_Admin
         $queue_count = $this->optimizer->get_queue_count();
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('Clever Image Optimizer', 'clevers-image-optimizer'); ?></h1>
+            <h1><?php esc_html_e('Clevers Image Optimizer', 'clevers-image-optimizer'); ?></h1>
 
             <?php settings_errors('cio_messages'); ?>
 

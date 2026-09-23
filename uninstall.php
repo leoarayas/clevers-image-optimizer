@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall script for Clever Image Optimizer.
+ * Uninstall script for Clevers Image Optimizer.
  *
  * Fired when the plugin is uninstalled via WordPress admin.
  * Removes all plugin options and transients from the database.
