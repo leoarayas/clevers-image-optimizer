@@ -1,5 +1,5 @@
 === Clevers Image Optimizer ===
-Contributors: cleversdevs
+Contributors: cleversdev
 Donate link: https://clevers.dev
 Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
