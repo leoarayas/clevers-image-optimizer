@@ -3,7 +3,7 @@ Contributors: cleversdevs
 Donate link: https://clevers.dev
 Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.1
 Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv2 or later

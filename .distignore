@@ -19,3 +19,7 @@ phpunit.xml*
 README.md
 RELEASING.md
 Makefile
+
+phpstan*
+docs
+*.md

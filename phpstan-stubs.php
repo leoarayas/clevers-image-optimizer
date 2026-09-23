@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 
 declare(strict_types=1);
 
@@ -61,7 +62,7 @@ namespace {
     if (!function_exists('esc_attr')) { function esc_attr($text) { return (string) $text; } }
     if (!function_exists('__')) { function __($text, $domain = '') { return (string) $text; } }
     if (!function_exists('wp_kses_post')) { function wp_kses_post($content) { return (string) $content; } }
-    if (!function_exists('wp_die')) { function wp_die($message = '', $title = '', $args = []) { throw new \RuntimeException((string) $message); } }
+    if (!function_exists('wp_die')) { function wp_die($message = '', $title = '', $args = []) { throw new \RuntimeException(esc_html((string) $message)); } }
     if (!function_exists('register_setting')) { function register_setting(...$args) {} }
     if (!function_exists('add_settings_field')) { function add_settings_field(...$args) {} }
     if (!function_exists('add_settings_section')) { function add_settings_section(...$args) {} }

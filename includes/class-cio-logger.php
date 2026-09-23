@@ -40,6 +40,11 @@ class CIO_Logger
             'ts'       => gmdate('c'),
         ];
 
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            return;
+        }
+
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         error_log('[clevers-image-optimizer] ' . $severity . ' ' . wp_json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     }
 
