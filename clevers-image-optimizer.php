@@ -21,15 +21,21 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 }
 
 require_once plugin_dir_path(__FILE__) . 'includes/htaccess.php';
+require_once plugin_dir_path(__FILE__) . 'includes/nginx.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-utils.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-logger.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-optimizer.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-cio-safety-net.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-cio-diagnostics.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-media-library.php';
 
 function clevers_io_init()
 {
     $optimizer = new Clevers_IO_Optimizer();
+
+    $safety_net = new Clevers_IO_Safety_Net();
+    add_filter('wp_handle_upload_prefilter', [$safety_net, 'filter_upload']);
 
     if (is_admin()) {
         new Clevers_IO_Admin($optimizer);

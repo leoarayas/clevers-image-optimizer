@@ -66,8 +66,20 @@ class Clevers_IO_Optimizer
 
     public function process_queue()
     {
+        $this->run_batch();
+    }
+
+    /**
+     * Procesa hasta batch_limit items de la cola respetando el time_limit.
+     * Devuelve un resumen con conteos para que llamadores AJAX puedan
+     * reportar progreso al usuario.
+     *
+     * @return array{processed:int, remaining:int, stopped_early:bool}
+     */
+    public function run_batch()
+    {
         if (get_transient(self::LOCK_KEY)) {
-            return;
+            return ['processed' => 0, 'remaining' => $this->get_queue_count(), 'stopped_early' => false];
         }
 
         set_transient(self::LOCK_KEY, 1, 60);
@@ -79,13 +91,15 @@ class Clevers_IO_Optimizer
         $queue = $this->get_queue();
         if (empty($queue)) {
             delete_transient(self::LOCK_KEY);
-            return;
+            return ['processed' => 0, 'remaining' => 0, 'stopped_early' => false];
         }
 
         $processed = 0;
+        $stopped_early = false;
 
         while (!empty($queue) && $processed < $batch_limit) {
             if ((time() - $start_time) >= $time_limit) {
+                $stopped_early = true;
                 break;
             }
 
@@ -101,6 +115,12 @@ class Clevers_IO_Optimizer
         if (!empty($queue)) {
             $this->schedule_queue_processing();
         }
+
+        return [
+            'processed' => $processed,
+            'remaining' => count($queue),
+            'stopped_early' => $stopped_early,
+        ];
     }
 
     public function optimize_attachment($attachment_id)

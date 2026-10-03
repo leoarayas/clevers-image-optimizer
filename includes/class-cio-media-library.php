@@ -19,9 +19,11 @@ class Clevers_IO_Media_Library
         add_filter('handle_bulk_actions-upload', [$this, 'handle_bulk_action'], 10, 3);
 
         add_action('admin_notices', [$this, 'bulk_action_admin_notice']);
+        add_action('admin_notices', [$this, 'render_process_now_button']);
 
         add_filter('media_row_actions', [$this, 'add_reoptimize_row_action'], 10, 2);
         add_action('wp_ajax_clevers_io_reoptimize_single', [$this, 'ajax_reoptimize_single']);
+        add_action('wp_ajax_clevers_io_process_batch', [$this, 'ajax_process_batch']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
     }
 
@@ -44,6 +46,16 @@ class Clevers_IO_Media_Library
             'queued'          => __('✓ Encolada', 'clevers-image-optimizer'),
             'errorUnknown'    => __('Error desconocido.', 'clevers-image-optimizer'),
             'errorConnection' => __('Error de conexión.', 'clevers-image-optimizer'),
+        ]);
+
+        // Boton "Procesar cola ahora" en la barra de la Biblioteca de Medios
+        wp_localize_script('clevers-io-media-library', 'cleversIoQueue', [
+            'ajaxUrl'     => admin_url('admin-ajax.php'),
+            'nonce'       => wp_create_nonce('clevers_io_process_batch'),
+            'processing'  => __('Procesando cola…', 'clevers-image-optimizer'),
+            'processed'   => __('Procesadas: %d', 'clevers-image-optimizer'),
+            'remaining'   => __('Quedan: %d', 'clevers-image-optimizer'),
+            'errorUnknown' => __('Error desconocido.', 'clevers-image-optimizer'),
         ]);
     }
 
@@ -150,6 +162,48 @@ class Clevers_IO_Media_Library
         );
     }
 
+    /**
+     * Inyecta el boton "Procesar cola ahora" en la Biblioteca de Medios.
+     * Solo se muestra a usuarios con permisos y si la cola no esta vacia.
+     */
+    public function render_process_now_button()
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (!$screen || $screen->id !== 'upload') {
+            return;
+        }
+
+        if (!current_user_can('upload_files') && !current_user_can('manage_options')) {
+            return;
+        }
+
+        if ($this->optimizer->get_queue_count() === 0) {
+            return;
+        }
+
+        ?>
+        <div class="clevers-io-queue-widget notice notice-info">
+            <p>
+                <strong><?php esc_html_e('Clevers Image Optimizer', 'clevers-image-optimizer'); ?></strong>
+                —
+                <?php
+                printf(
+                    /* translators: %d: number of pending attachments */
+                    esc_html(_n('Hay %d imagen pendiente en la cola.', 'Hay %d imágenes pendientes en la cola.', $this->optimizer->get_queue_count(), 'clevers-image-optimizer')),
+                    (int) $this->optimizer->get_queue_count()
+                );
+                ?>
+            </p>
+            <p>
+                <button type="button" id="clevers-io-process-now" class="button button-primary">
+                    <?php esc_html_e('Procesar cola ahora', 'clevers-image-optimizer'); ?>
+                </button>
+                <span id="clevers-io-queue-status" style="margin-left:10px;"></span>
+            </p>
+        </div>
+        <?php
+    }
+
     public function add_reoptimize_row_action(array $actions, $post)
     {
         $mime = get_post_mime_type($post->ID);
@@ -198,6 +252,37 @@ class Clevers_IO_Media_Library
         } else {
             wp_send_json_error(['message' => __('No se pudo encolar la imagen (ya estaba en cola o ID inválido).', 'clevers-image-optimizer')]);
         }
+    }
+
+    /**
+     * Procesa un lote de la cola en background y devuelve el progreso.
+     * Pensado para ser llamado desde el boton "Procesar cola ahora" en
+     * la Biblioteca de Medios o la pagina de Ajustes.
+     */
+    public function ajax_process_batch()
+    {
+        if (!current_user_can('upload_files') && !current_user_can('manage_options')) {
+            wp_send_json_error(['message' => __('No tienes permiso para realizar esta acción.', 'clevers-image-optimizer')]);
+        }
+
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+        if (!wp_verify_nonce($nonce, 'clevers_io_process_batch') && !wp_verify_nonce($nonce, 'cio_process_batch')) {
+            wp_send_json_error(['message' => __('Nonce inválido.', 'clevers-image-optimizer')]);
+        }
+
+        $result = $this->optimizer->run_batch();
+
+        wp_send_json_success([
+            'processed' => (int) $result['processed'],
+            'remaining' => (int) $result['remaining'],
+            'stopped_early' => (bool) $result['stopped_early'],
+            'message' => sprintf(
+                /* translators: 1: number processed, 2: number remaining */
+                __('Procesadas %1$d imágenes. Quedan %2$d en cola.', 'clevers-image-optimizer'),
+                (int) $result['processed'],
+                (int) $result['remaining']
+            ),
+        ]);
     }
 }
 

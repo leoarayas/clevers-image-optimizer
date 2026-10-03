@@ -99,6 +99,55 @@ if (!function_exists('absint')) {
     }
 }
 
+if (!function_exists('wp_is_writable')) {
+    function wp_is_writable($path)
+    {
+        return is_writable($path);
+    }
+}
+
+if (!function_exists('is_executable')) {
+    function is_executable($path)
+    {
+        return function_exists('is_executable') ? \is_executable($path) : false;
+    }
+}
+
+if (!function_exists('__')) {
+    function __($text, $domain = null)
+    {
+        return $text;
+    }
+}
+
+if (!function_exists('esc_html__')) {
+    function esc_html__($text, $domain = null)
+    {
+        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_html_e')) {
+    function esc_html_e($text, $domain = null)
+    {
+        echo htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_attr')) {
+    function esc_attr($text)
+    {
+        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_attr_e')) {
+    function esc_attr_e($text, $domain = null)
+    {
+        echo htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
 if (!function_exists('trailingslashit')) {
     function trailingslashit($value)
     {
@@ -108,3 +157,5 @@ if (!function_exists('trailingslashit')) {
 
 require_once dirname(__DIR__) . '/includes/class-cio-utils.php';
 require_once dirname(__DIR__) . '/includes/class-cio-optimizer.php';
+require_once dirname(__DIR__) . '/includes/class-cio-diagnostics.php';
+require_once dirname(__DIR__) . '/includes/nginx.php';
