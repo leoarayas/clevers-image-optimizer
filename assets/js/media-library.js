@@ -44,7 +44,24 @@
         $btn.prop('disabled', true).text(cleversIoQueue.processing);
 
         var $status = $('#clevers-io-queue-status');
+        var $progressWrapper = $('#clevers-io-queue-progress-wrapper');
+        var $progress = $('#clevers-io-queue-progress');
+        var $progressValue = $('#clevers-io-queue-progress-value');
+        var initialCount = Number(cleversIoQueue.initialCount) || 0;
         $status.text('');
+        $progressWrapper.prop('hidden', false);
+        $progress.val(0);
+        $progressValue.text('0%');
+
+        var updateProgress = function(remaining) {
+            var completed = Math.max(0, initialCount - remaining);
+            var percentage = initialCount > 0
+                ? Math.min(100, Math.round((completed / initialCount) * 100))
+                : 100;
+
+            $progress.val(percentage);
+            $progressValue.text(percentage + '%');
+        };
 
         var runOne = function() {
             $.post(cleversIoQueue.ajaxUrl, {
@@ -63,6 +80,7 @@
                 }
 
                 var data = response.data;
+                updateProgress(Number(data.remaining) || 0);
                 $status.empty().append($('<span>', {
                     text: data.message
                 }).css('color', 'green'));

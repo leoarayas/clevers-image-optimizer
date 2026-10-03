@@ -52,6 +52,7 @@ class Clevers_IO_Media_Library
         wp_localize_script('clevers-io-media-library', 'cleversIoQueue', [
             'ajaxUrl'     => admin_url('admin-ajax.php'),
             'nonce'       => wp_create_nonce('clevers_io_process_batch'),
+            'initialCount' => $this->optimizer->get_queue_count(),
             'processing'  => __('Procesando cola…', 'clevers-image-optimizer'),
             'processed'   => __('Procesadas: %d', 'clevers-image-optimizer'),
             'remaining'   => __('Quedan: %d', 'clevers-image-optimizer'),
@@ -199,6 +200,13 @@ class Clevers_IO_Media_Library
                     <?php esc_html_e('Procesar cola ahora', 'clevers-image-optimizer'); ?>
                 </button>
                 <span id="clevers-io-queue-status" style="margin-left:10px;"></span>
+            </p>
+            <p id="clevers-io-queue-progress-wrapper" hidden>
+                <label for="clevers-io-queue-progress">
+                    <?php esc_html_e('Progreso de optimización', 'clevers-image-optimizer'); ?>
+                </label>
+                <progress id="clevers-io-queue-progress" max="100" value="0">0%</progress>
+                <span id="clevers-io-queue-progress-value">0%</span>
             </p>
         </div>
         <?php
