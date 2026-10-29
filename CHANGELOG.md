@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- WebP is now supported by the Media Library re-optimization flow and upload
+  safety net.
+- An optional maximum dimension can resize images processed by the optimizer;
+  it is disabled by default so existing dimensions are preserved until enabled.
 - `CIO_Logger` exposes debug/info/warn/error severity routing via `error_log`
   with a structured payload (`plugin`, `severity`, `channel`, `message`,
   `context`, `ts`). Closes CLE-125.

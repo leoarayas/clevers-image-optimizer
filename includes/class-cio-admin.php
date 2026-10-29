@@ -85,6 +85,12 @@ class Clevers_IO_Admin
             'sanitize_callback' => [$this, 'sanitize_time_limit'],
         ]);
 
+        register_setting('clevers_io_settings_group', Clevers_IO_Optimizer::OPTION_MAX_DIMENSION, [
+            'type' => 'integer',
+            'default' => 0,
+            'sanitize_callback' => [$this, 'sanitize_existing_max_dimension'],
+        ]);
+
         register_setting('clevers_io_settings_group', 'clevers_io_safety_net_enabled', [
             'type' => 'string',
             'default' => '0',
@@ -133,6 +139,16 @@ class Clevers_IO_Admin
         }
 
         return min($value, 120);
+    }
+
+    public function sanitize_existing_max_dimension($value)
+    {
+        $value = absint($value);
+        if ($value === 0) {
+            return 0;
+        }
+
+        return min(max($value, 500), 8192);
     }
 
     public function sanitize_checkbox($value)
@@ -313,6 +329,20 @@ class Clevers_IO_Admin
                                 );
                                 ?>
                             </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3><?php esc_html_e('Biblioteca existente', 'clevers-image-optimizer'); ?></h3>
+                <p class="description">
+                    <?php esc_html_e('Reduce las dimensiones de JPEG, PNG y WebP procesados por el plugin, incluidos los que re-optimices desde la Biblioteca de Medios. El valor 0 conserva el tamaño actual.', 'clevers-image-optimizer'); ?>
+                </p>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row"><?php esc_html_e('Máxima dimensión al optimizar (px)', 'clevers-image-optimizer'); ?></th>
+                        <td>
+                            <input type="number" name="clevers_io_max_dimension" value="<?php echo esc_attr(get_option(Clevers_IO_Optimizer::OPTION_MAX_DIMENSION, 0)); ?>" min="0" max="8192" />
+                            <p class="description"><?php esc_html_e('0 desactiva el redimensionamiento. Usa, por ejemplo, 1200 para imágenes de contenido mostradas en columnas.', 'clevers-image-optimizer'); ?></p>
                         </td>
                     </tr>
                 </table>

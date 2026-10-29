@@ -29,14 +29,41 @@ final class CIOOptimizerTest extends TestCase
         $this->assertSame([5], $ids_zeros);
     }
 
-    public function test_is_supported_image_path_accepts_jpg_jpeg_png_only(): void
+    public function test_is_supported_image_path_accepts_raster_image_formats(): void
     {
         $optimizer = new Clevers_IO_Optimizer();
 
         $this->assertTrue($optimizer->is_supported_image_path('/tmp/photo.jpg'));
         $this->assertTrue($optimizer->is_supported_image_path('/tmp/photo.JPEG'));
         $this->assertTrue($optimizer->is_supported_image_path('/tmp/photo.png'));
-        $this->assertFalse($optimizer->is_supported_image_path('/tmp/photo.webp'));
+        $this->assertTrue($optimizer->is_supported_image_path('/tmp/photo.webp'));
         $this->assertFalse($optimizer->is_supported_image_path('/tmp/photo.gif'));
+    }
+
+    public function test_resize_file_scales_down_webp_and_preserves_format(): void
+    {
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD no incluye soporte WebP.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'cio-webp-');
+        $image = imagecreatetruecolor(1600, 1200);
+        imagefill($image, 0, 0, imagecolorallocate($image, 100, 150, 200));
+        imagewebp($image, $path, 85);
+        if (PHP_VERSION_ID < 80500) {
+            imagedestroy($image);
+        }
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+
+            $this->assertTrue($optimizer->resize_file($path, 1200));
+            [$width, $height, $type] = getimagesize($path);
+            $this->assertSame(1200, $width);
+            $this->assertSame(900, $height);
+            $this->assertSame(IMAGETYPE_WEBP, $type);
+        } finally {
+            @unlink($path);
+        }
     }
 }

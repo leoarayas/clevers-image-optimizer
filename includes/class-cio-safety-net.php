@@ -67,7 +67,7 @@ class Clevers_IO_Safety_Net
         }
 
         $type = strtolower((string) $file['type']);
-        if (!in_array($type, ['image/jpeg', 'image/jpg', 'image/png'], true)) {
+        if (!in_array($type, ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'], true)) {
             return false;
         }
 
@@ -160,7 +160,7 @@ class Clevers_IO_Safety_Net
     }
 
     /**
-     * @param int $type IMAGETYPE_JPEG o IMAGETYPE_PNG
+     * @param int $type IMAGETYPE_JPEG, IMAGETYPE_PNG o IMAGETYPE_WEBP
      * @return resource|false
      */
     private function load_image($path, $type)
@@ -170,6 +170,9 @@ class Clevers_IO_Safety_Net
         }
         if ($type === IMAGETYPE_PNG) {
             return @imagecreatefrompng($path);
+        }
+        if ($type === IMAGETYPE_WEBP && function_exists('imagecreatefromwebp')) {
+            return @imagecreatefromwebp($path);
         }
         return false;
     }
@@ -185,6 +188,9 @@ class Clevers_IO_Safety_Net
         }
         if ($type === IMAGETYPE_PNG) {
             return imagepng($image, $path, 6);
+        }
+        if ($type === IMAGETYPE_WEBP && function_exists('imagewebp')) {
+            return imagewebp($image, $path, 80);
         }
         return false;
     }

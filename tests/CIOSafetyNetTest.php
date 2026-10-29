@@ -58,6 +58,17 @@ final class CIOSafetyNetTest extends TestCase
         ]));
     }
 
+    public function test_should_intervene_returns_true_for_webp_when_enabled(): void
+    {
+        $safety = new Clevers_IO_Safety_Net(['enabled' => true]);
+
+        $this->assertTrue($safety->should_intervene([
+            'type' => 'image/webp',
+            'name' => 'photo.webp',
+            'tmp_name' => '/tmp/photo',
+        ]));
+    }
+
     public function test_max_dimension_default_is_2560(): void
     {
         $safety = new Clevers_IO_Safety_Net(['enabled' => true]);

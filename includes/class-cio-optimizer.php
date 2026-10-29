@@ -11,6 +11,7 @@ class Clevers_IO_Optimizer
     const OPTION_QUEUE = 'clevers_io_pending_queue';
     const CRON_HOOK = 'clevers_io_process_queue';
     const LOCK_KEY = 'clevers_io_process_queue_lock';
+    const OPTION_MAX_DIMENSION = 'clevers_io_max_dimension';
 
     public function __construct()
     {
@@ -156,6 +157,7 @@ class Clevers_IO_Optimizer
         if ($this->is_supported_image_path($original) && file_exists($original)) {
             $stats['original_size'] = (int) filesize($original);
 
+            $this->resize_file($original, $this->get_max_dimension());
             $this->optimize_file($original);
             $stats['optimized_size'] = (int) filesize($original);
 
@@ -238,7 +240,7 @@ class Clevers_IO_Optimizer
 
         $quality = $this->get_webp_quality();
         imagewebp($img, $webp, $quality);
-        imagedestroy($img);
+        $this->destroy_image_resource($img);
     }
 
     public function generate_avif($file)
@@ -260,7 +262,7 @@ class Clevers_IO_Optimizer
 
         $quality = $this->get_avif_quality();
         imageavif($img, $avif, $quality);
-        imagedestroy($img);
+        $this->destroy_image_resource($img);
     }
 
     public function get_queue_count()
@@ -283,7 +285,60 @@ class Clevers_IO_Optimizer
 
     public function is_supported_image_path($file)
     {
-        return (bool) preg_match('/\.(jpe?g|png)$/i', (string) $file);
+        return (bool) preg_match('/\.(jpe?g|png|webp)$/i', (string) $file);
+    }
+
+    /**
+     * Redimensiona una imagen existente solo cuando se configuró un límite
+     * explícito. El valor 0 conserva las dimensiones originales.
+     *
+     * @param string $file Ruta absoluta dentro de uploads.
+     * @param int $max_dimension Máxima anchura o altura permitida.
+     * @return bool True si se redimensionó correctamente.
+     */
+    public function resize_file($file, $max_dimension)
+    {
+        $max_dimension = absint($max_dimension);
+        if ($max_dimension === 0 || !file_exists($file)) {
+            return false;
+        }
+
+        $info = @getimagesize($file);
+        if ($info === false || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP], true)) {
+            return false;
+        }
+
+        [$width, $height] = $info;
+        if ($width <= $max_dimension && $height <= $max_dimension) {
+            return false;
+        }
+
+        $source = $this->create_image_resource($file);
+        if (!$source) {
+            return false;
+        }
+
+        $ratio = $width >= $height ? $max_dimension / $width : $max_dimension / $height;
+        $target = imagescale($source, (int) round($width * $ratio), (int) round($height * $ratio));
+        $this->destroy_image_resource($source);
+        if ($target === false) {
+            return false;
+        }
+
+        $temporary = $file . '.clevers-io-resize';
+        $saved = $this->save_image_resource($target, $temporary, $info[2]);
+        $this->destroy_image_resource($target);
+        if (!$saved) {
+            @unlink($temporary);
+            return false;
+        }
+
+        if (!@rename($temporary, $file)) {
+            @unlink($temporary);
+            return false;
+        }
+
+        return true;
     }
 
     private function get_queue()
@@ -326,6 +381,17 @@ class Clevers_IO_Optimizer
         }
 
         return min($limit, 120);
+    }
+
+    private function get_max_dimension()
+    {
+        $dimension = absint(get_option(self::OPTION_MAX_DIMENSION, 0));
+
+        if ($dimension !== 0 && $dimension < 500) {
+            return 500;
+        }
+
+        return min($dimension, 8192);
     }
 
     private function create_image_resource($file)
@@ -373,6 +439,41 @@ class Clevers_IO_Optimizer
         }
 
         return $img;
+    }
+
+    /**
+     * @param resource $image
+     * @param int $type IMAGETYPE_JPEG, IMAGETYPE_PNG o IMAGETYPE_WEBP.
+     */
+    private function save_image_resource($image, $path, $type)
+    {
+        if ($type === IMAGETYPE_JPEG) {
+            return imagejpeg($image, $path, 85);
+        }
+
+        if ($type === IMAGETYPE_PNG) {
+            imagesavealpha($image, true);
+            return imagepng($image, $path, 6);
+        }
+
+        if ($type === IMAGETYPE_WEBP && function_exists('imagewebp')) {
+            return imagewebp($image, $path, $this->get_webp_quality());
+        }
+
+        return false;
+    }
+
+    /**
+     * PHP 8.5 libera los objetos GD automaticamente y depreca imagedestroy().
+     * En PHP anteriores mantenemos la liberacion explicita de recursos.
+     *
+     * @param resource|object $image
+     */
+    private function destroy_image_resource($image)
+    {
+        if (PHP_VERSION_ID < 80500 && is_resource($image)) {
+            imagedestroy($image);
+        }
     }
 
     private function get_webp_path($file)

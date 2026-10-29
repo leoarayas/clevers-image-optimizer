@@ -74,7 +74,7 @@ class Clevers_IO_Media_Library
         }
 
         $mime = get_post_mime_type($post_id);
-        if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             echo '<span style="color:#999;">—</span>';
             return;
         }
@@ -215,7 +215,7 @@ class Clevers_IO_Media_Library
     public function add_reoptimize_row_action(array $actions, $post)
     {
         $mime = get_post_mime_type($post->ID);
-        if (!in_array($mime, ['image/jpeg', 'image/png'], true)) {
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             return $actions;
         }
 

@@ -4,7 +4,7 @@ Donate link: https://clevers.dev
 Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
 Tested up to: 7.1
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -17,7 +17,8 @@ Clevers Image Optimizer optimizes local WordPress images and generates modern fo
 Since version 0.3.0, processing runs in the background with queueing and batch/time limits to avoid admin timeouts during large uploads.
 
 = Features =
-* Local optimization of original JPG/PNG files.
+* Local optimization of JPG, PNG and WebP files.
+* Optional maximum dimension for images processed by the plugin.
 * WebP generation.
 * Optional AVIF generation.
 * `.htaccess` rules for transparent delivery.
@@ -47,6 +48,10 @@ The plugin shows capability status in settings. If `imageavif` is not available,
 No, if you use the official release ZIP. Composer is only needed for local development and CI.
 
 == Changelog ==
+= 1.0.3 =
+* Added WebP support to Media Library re-optimization and the upload safety net.
+* Added an optional maximum dimension for images processed by the plugin (disabled by default).
+
 = 1.0.2 =
 * Compliance: Remove "Tested up to" from main PHP file (declared in readme.txt only).
 * Scripts: Properly enqueue Media Library script with wp_enqueue_script() instead of inline script tags.
