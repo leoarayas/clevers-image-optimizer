@@ -167,6 +167,41 @@ final class CIOOptimizerTest extends TestCase
         }
     }
 
+    public function test_recompress_webp_preserves_an_existing_first_backup(): void
+    {
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD no incluye soporte WebP.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'cio-existing-backup-') . '.webp';
+        $bak_path = $path . '.bak';
+        $image = imagecreatetruecolor(500, 300);
+        for ($x = 0; $x < 500; $x += 10) {
+            for ($y = 0; $y < 300; $y += 10) {
+                $color = imagecolorallocate($image, ($x * 7) % 255, ($y * 11) % 255, ($x + $y * 3) % 255);
+                imagefilledrectangle($image, $x, $y, $x + 10, $y + 10, $color);
+            }
+        }
+        imagewebp($image, $path, 98);
+        if (PHP_VERSION_ID < 80500) {
+            imagedestroy($image);
+        }
+
+        $first_backup = 'first-backup-must-not-change';
+        file_put_contents($bak_path, $first_backup);
+        update_option('clevers_io_webp_quality', 30);
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+            $this->assertTrue($optimizer->recompress_webp($path));
+            $this->assertSame($first_backup, file_get_contents($bak_path));
+        } finally {
+            @unlink($path);
+            @unlink($bak_path);
+            update_option('clevers_io_webp_quality', 80);
+        }
+    }
+
     public function test_generate_webp_respects_recompress_option(): void
     {
         if (!function_exists('imagewebp')) {

@@ -322,9 +322,10 @@ class Clevers_IO_Optimizer
             return false;
         }
 
-        // Crear respaldo antes de reemplazar
+        // Crear el primer respaldo antes de reemplazar. Si ya existe, es el
+        // original de una recompresion anterior y no debe sobrescribirse.
         $backup_path = $target_webp . '.bak';
-        if (!@copy($target_webp, $backup_path)) {
+        if (!file_exists($backup_path) && !@copy($target_webp, $backup_path)) {
             @unlink($tmp_file);
             Clevers_IO_Logger::warn('recompress_webp: fallo al crear respaldo .bak, abortando reemplazo', [
                 'target' => $target_webp,
