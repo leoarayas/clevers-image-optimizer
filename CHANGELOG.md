@@ -4,7 +4,7 @@ All notable changes to **Clevers Image Optimizer** are documented here. The
 format follows [Keep a Changelog](https://keepachangelog.com/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.0.5] - 2026-10-30
 
 ### Added
 - Brizy adapter rewrites local JPG/PNG URLs in compiled content to explicit
