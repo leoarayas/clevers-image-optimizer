@@ -13,6 +13,7 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 (function () {
     $options = [
         'clevers_io_webp_quality',
+        'clevers_io_recompress_webp',
         'clevers_io_enable_avif',
         'clevers_io_avif_quality',
         'clevers_io_batch_limit',

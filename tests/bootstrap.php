@@ -44,16 +44,25 @@ if (!function_exists('delete_transient')) {
 }
 
 if (!function_exists('get_option')) {
-    function get_option(...$args)
+    function get_option($option, $default = false)
     {
-        return null;
+        global $mock_options;
+        if (is_array($mock_options) && array_key_exists($option, $mock_options)) {
+            return $mock_options[$option];
+        }
+        return $default;
     }
 }
 
 if (!function_exists('update_option')) {
-    function update_option(...$args)
+    function update_option($option, $value)
     {
-        return null;
+        global $mock_options;
+        if (!is_array($mock_options)) {
+            $mock_options = [];
+        }
+        $mock_options[$option] = $value;
+        return true;
     }
 }
 
@@ -156,6 +165,7 @@ if (!function_exists('trailingslashit')) {
 }
 
 require_once dirname(__DIR__) . '/includes/class-cio-utils.php';
+require_once dirname(__DIR__) . '/includes/class-cio-logger.php';
 require_once dirname(__DIR__) . '/includes/class-cio-optimizer.php';
 require_once dirname(__DIR__) . '/includes/class-cio-diagnostics.php';
 require_once dirname(__DIR__) . '/includes/nginx.php';

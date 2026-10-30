@@ -12,6 +12,7 @@ class Clevers_IO_Optimizer
     const CRON_HOOK = 'clevers_io_process_queue';
     const LOCK_KEY = 'clevers_io_process_queue_lock';
     const OPTION_MAX_DIMENSION = 'clevers_io_max_dimension';
+    const OPTION_RECOMPRESS_WEBP = 'clevers_io_recompress_webp';
 
     public function __construct()
     {
@@ -165,6 +166,9 @@ class Clevers_IO_Optimizer
             $webp_path = $this->get_webp_path($original);
             if (file_exists($webp_path)) {
                 $stats['webp_size'] = (int) filesize($webp_path);
+                if ($original === $webp_path) {
+                    $stats['optimized_size'] = $stats['webp_size'];
+                }
             }
 
             if ($this->is_avif_enabled()) {
@@ -221,6 +225,11 @@ class Clevers_IO_Optimizer
         }
     }
 
+    public function is_recompress_webp_enabled()
+    {
+        return (string) get_option(self::OPTION_RECOMPRESS_WEBP, '0') === '1';
+    }
+
     public function generate_webp($file)
     {
         if (!function_exists('imagewebp')) {
@@ -230,6 +239,9 @@ class Clevers_IO_Optimizer
         $webp = $this->get_webp_path($file);
 
         if (file_exists($webp)) {
+            if ($this->is_recompress_webp_enabled()) {
+                $this->recompress_webp($file, $webp);
+            }
             return;
         }
 
@@ -241,6 +253,111 @@ class Clevers_IO_Optimizer
         $quality = $this->get_webp_quality();
         imagewebp($img, $webp, $quality);
         $this->destroy_image_resource($img);
+    }
+
+    /**
+     * Recomprime de forma segura un archivo WebP existente:
+     * genera un archivo temporal, compara su tamano con el original,
+     * y solo si resulta mas liviano crea un respaldo (.bak) y lo reemplaza.
+     * Si no es mas pequeno o falla, conserva el original intacto y elimina el temporal.
+     *
+     * @param string      $file        Archivo fuente (puede ser JPEG, PNG o el mismo WebP).
+     * @param string|null $target_webp Ruta del archivo WebP a recomprimir (opcional).
+     * @return bool True si fue reemplazado por un archivo mas pequeno, false en caso contrario.
+     */
+    public function recompress_webp($file, $target_webp = null)
+    {
+        if (!function_exists('imagewebp') || !file_exists($file)) {
+            return false;
+        }
+
+        if ($target_webp === null || $target_webp === '') {
+            if (preg_match('/\.webp$/i', $file)) {
+                $target_webp = $file;
+            } else {
+                $target_webp = $this->get_webp_path($file);
+            }
+        }
+
+        if (!file_exists($target_webp)) {
+            return false;
+        }
+
+        $old_size = filesize($target_webp);
+        if ($old_size === false || $old_size <= 0) {
+            return false;
+        }
+
+        $img = $this->create_image_resource($file);
+        if (!$img) {
+            return false;
+        }
+
+        $random_suffix = function_exists('wp_generate_password')
+            ? wp_generate_password(8, false, false)
+            : bin2hex(random_bytes(4));
+        $tmp_file = $target_webp . '.tmp.' . $random_suffix . '.webp';
+
+        $quality = $this->get_webp_quality();
+        $saved   = imagewebp($img, $tmp_file, $quality);
+        $this->destroy_image_resource($img);
+
+        if (!$saved || !file_exists($tmp_file)) {
+            if (file_exists($tmp_file)) {
+                @unlink($tmp_file);
+            }
+            return false;
+        }
+
+        clearstatcache(true, $tmp_file);
+        $new_size = filesize($tmp_file);
+
+        if ($new_size === false || $new_size <= 0 || $new_size >= $old_size) {
+            @unlink($tmp_file);
+            Clevers_IO_Logger::debug('recompress_webp: conservando archivo original porque el candidato no es menor', [
+                'target'   => $target_webp,
+                'old_size' => $old_size,
+                'new_size' => $new_size,
+            ], 'optimizer');
+            return false;
+        }
+
+        // Crear respaldo antes de reemplazar
+        $backup_path = $target_webp . '.bak';
+        if (!@copy($target_webp, $backup_path)) {
+            @unlink($tmp_file);
+            Clevers_IO_Logger::warn('recompress_webp: fallo al crear respaldo .bak, abortando reemplazo', [
+                'target' => $target_webp,
+                'backup' => $backup_path,
+            ], 'optimizer');
+            return false;
+        }
+
+        // Reemplazo seguro: intentar rename primero, luego copy + unlink
+        if (!@rename($tmp_file, $target_webp)) {
+            if (!@copy($tmp_file, $target_webp)) {
+                @unlink($tmp_file);
+                // Si la copia fallo, restaurar desde el respaldo
+                @copy($backup_path, $target_webp);
+                Clevers_IO_Logger::error('recompress_webp: fallo al reemplazar archivo final', [
+                    'target' => $target_webp,
+                ], 'optimizer');
+                return false;
+            }
+            @unlink($tmp_file);
+        }
+
+        clearstatcache(true, $target_webp);
+
+        Clevers_IO_Logger::info('recompress_webp: reemplazado exitosamente por archivo mas liviano', [
+            'target'   => $target_webp,
+            'old_size' => $old_size,
+            'new_size' => $new_size,
+            'savings'  => $old_size - $new_size,
+            'backup'   => $backup_path,
+        ], 'optimizer');
+
+        return true;
     }
 
     public function generate_avif($file)

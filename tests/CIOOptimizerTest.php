@@ -66,4 +66,153 @@ final class CIOOptimizerTest extends TestCase
             @unlink($path);
         }
     }
+
+    public function test_is_recompress_webp_enabled_returns_boolean_according_to_option(): void
+    {
+        $optimizer = new Clevers_IO_Optimizer();
+
+        update_option(Clevers_IO_Optimizer::OPTION_RECOMPRESS_WEBP, '0');
+        $this->assertFalse($optimizer->is_recompress_webp_enabled());
+
+        update_option(Clevers_IO_Optimizer::OPTION_RECOMPRESS_WEBP, '1');
+        $this->assertTrue($optimizer->is_recompress_webp_enabled());
+    }
+
+    public function test_recompress_webp_creates_backup_and_replaces_when_candidate_is_smaller(): void
+    {
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD no incluye soporte WebP.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'cio-recompress-') . '.webp';
+        $bak_path = $path . '.bak';
+
+        // Generar una imagen con ruido/gradiente en calidad 98 para que pese bastante
+        $image = imagecreatetruecolor(600, 400);
+        for ($x = 0; $x < 600; $x += 10) {
+            for ($y = 0; $y < 400; $y += 10) {
+                $color = imagecolorallocate($image, ($x * 3) % 255, ($y * 5) % 255, ($x + $y) % 255);
+                imagefilledrectangle($image, $x, $y, $x + 10, $y + 10, $color);
+            }
+        }
+        imagewebp($image, $path, 98);
+        if (PHP_VERSION_ID < 80500) {
+            imagedestroy($image);
+        }
+
+        $original_size = filesize($path);
+        $this->assertGreaterThan(0, $original_size);
+
+        // Calidad baja para que el archivo candidato sea notoriamente menor
+        update_option('clevers_io_webp_quality', 30);
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+            $replaced  = $optimizer->recompress_webp($path);
+
+            $this->assertTrue($replaced);
+            $this->assertFileExists($bak_path);
+            $this->assertSame($original_size, filesize($bak_path));
+
+            clearstatcache(true, $path);
+            $new_size = filesize($path);
+            $this->assertLessThan($original_size, $new_size);
+        } finally {
+            @unlink($path);
+            @unlink($bak_path);
+            update_option('clevers_io_webp_quality', 80);
+        }
+    }
+
+    public function test_recompress_webp_preserves_original_and_does_not_backup_when_not_smaller(): void
+    {
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD no incluye soporte WebP.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'cio-keep-') . '.webp';
+        $bak_path = $path . '.bak';
+
+        // Generar una imagen con gradiente en calidad baja (20)
+        $image = imagecreatetruecolor(400, 400);
+        for ($x = 0; $x < 400; $x += 10) {
+            for ($y = 0; $y < 400; $y += 10) {
+                $color = imagecolorallocate($image, ($x * 3) % 255, ($y * 5) % 255, ($x + $y) % 255);
+                imagefilledrectangle($image, $x, $y, $x + 10, $y + 10, $color);
+            }
+        }
+        imagewebp($image, $path, 20);
+        if (PHP_VERSION_ID < 80500) {
+            imagedestroy($image);
+        }
+
+        $original_size = filesize($path);
+
+        // Calidad alta (95) para que el nuevo archivo sea necesariamente mas pesado
+        update_option('clevers_io_webp_quality', 95);
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+            $replaced  = $optimizer->recompress_webp($path);
+
+            $this->assertFalse($replaced);
+            $this->assertFileDoesNotExist($bak_path);
+
+            clearstatcache(true, $path);
+            $this->assertSame($original_size, filesize($path));
+        } finally {
+            @unlink($path);
+            @unlink($bak_path);
+            update_option('clevers_io_webp_quality', 80);
+        }
+    }
+
+    public function test_generate_webp_respects_recompress_option(): void
+    {
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD no incluye soporte WebP.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'cio-gen-') . '.webp';
+        $bak_path = $path . '.bak';
+
+        $image = imagecreatetruecolor(300, 300);
+        for ($i = 0; $i < 300; $i += 10) {
+            $color = imagecolorallocate($image, $i % 255, ($i * 2) % 255, 120);
+            imagefilledrectangle($image, $i, 0, $i + 10, 300, $color);
+        }
+        imagewebp($image, $path, 95);
+        if (PHP_VERSION_ID < 80500) {
+            imagedestroy($image);
+        }
+
+        $original_size = filesize($path);
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+
+            // Deshabilitado: no debe tocar el archivo ni crear backup
+            update_option(Clevers_IO_Optimizer::OPTION_RECOMPRESS_WEBP, '0');
+            update_option('clevers_io_webp_quality', 20);
+            $optimizer->generate_webp($path);
+
+            $this->assertFileDoesNotExist($bak_path);
+            clearstatcache(true, $path);
+            $this->assertSame($original_size, filesize($path));
+
+            // Habilitado: debe recomprimir y crear backup
+            update_option(Clevers_IO_Optimizer::OPTION_RECOMPRESS_WEBP, '1');
+            $optimizer->generate_webp($path);
+
+            $this->assertFileExists($bak_path);
+            $this->assertSame($original_size, filesize($bak_path));
+            clearstatcache(true, $path);
+            $this->assertLessThan($original_size, filesize($path));
+        } finally {
+            @unlink($path);
+            @unlink($bak_path);
+            update_option(Clevers_IO_Optimizer::OPTION_RECOMPRESS_WEBP, '0');
+            update_option('clevers_io_webp_quality', 80);
+        }
+    }
 }

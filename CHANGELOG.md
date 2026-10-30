@@ -4,6 +4,14 @@ All notable changes to **Clevers Image Optimizer** are documented here. The
 format follows [Keep a Changelog](https://keepachangelog.com/) and the
 project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.0.6] - 2026-10-30
+
+### Added
+- Safe option to recompress existing WebP files (`clevers_io_recompress_webp`):
+  evaluates existing WebP files with current quality settings, creates a backup (.bak),
+  and replaces the file only if the new WebP is strictly smaller. Preserves original
+  files intact if candidate size is equal or larger.
+
 ## [1.0.5] - 2026-10-30
 
 ### Added

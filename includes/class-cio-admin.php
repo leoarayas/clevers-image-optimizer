@@ -61,6 +61,12 @@ class Clevers_IO_Admin
             'sanitize_callback' => [$this, 'sanitize_quality'],
         ]);
 
+        register_setting('clevers_io_settings_group', Clevers_IO_Optimizer::OPTION_RECOMPRESS_WEBP, [
+            'type' => 'string',
+            'default' => '0',
+            'sanitize_callback' => [$this, 'sanitize_checkbox'],
+        ]);
+
         register_setting('clevers_io_settings_group', 'clevers_io_enable_avif', [
             'type' => 'string',
             'default' => '0',
@@ -259,6 +265,19 @@ class Clevers_IO_Admin
                         <th scope="row"><?php esc_html_e('Calidad WebP (0-100)', 'clevers-image-optimizer'); ?></th>
                         <td>
                             <input type="number" name="clevers_io_webp_quality" value="<?php echo esc_attr(get_option('clevers_io_webp_quality', get_option('cio_webp_quality', 80))); ?>" min="0" max="100" />
+                        </td>
+                    </tr>
+
+                    <tr valign="top">
+                        <th scope="row"><?php esc_html_e('Recomprimir WebP existentes', 'clevers-image-optimizer'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="clevers_io_recompress_webp" value="1" <?php checked('1', (string) get_option(Clevers_IO_Optimizer::OPTION_RECOMPRESS_WEBP, '0')); ?> />
+                                <?php esc_html_e('Reevaluar y recomprimir archivos WebP existentes', 'clevers-image-optimizer'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Si ya existe un WebP previo, intenta recomprimirlo con la calidad actual. Genera un respaldo (.bak) y solo reemplaza el archivo si el nuevo resulta más liviano. Si es igual o más pesado, conserva el original intacto.', 'clevers-image-optimizer'); ?>
+                            </p>
                         </td>
                     </tr>
 

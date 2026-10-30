@@ -3,7 +3,7 @@
  * Plugin Name: Clevers Image Optimizer
  * Description: Optimización local de imágenes + WebP + AVIF para sitios gestionados por Clever.
  * Author: Clevers.dev
- * Version: 1.0.5
+ * Version: 1.0.6
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * License: GPLv2 or later
