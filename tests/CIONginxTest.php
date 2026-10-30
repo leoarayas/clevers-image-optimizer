@@ -22,9 +22,10 @@ final class CIONginxTest extends TestCase
         $this->assertIsString($block);
         $this->assertStringContainsString('map $http_accept', $block);
         $this->assertStringContainsString('image/webp', $block);
-        $this->assertStringContainsString('image/avif', $block);
+        $this->assertStringNotContainsString('image/avif', $block);
         $this->assertStringContainsString('try_files', $block);
         $this->assertStringContainsString('location ~', $block);
+        $this->assertStringContainsString('Cloudflare', $block);
     }
 
     public function test_get_nginx_config_block_has_documentation_comments(): void
@@ -40,7 +41,7 @@ final class CIONginxTest extends TestCase
 
         $this->assertIsString($map);
         $this->assertStringContainsString('map $http_accept', $map);
-        $this->assertStringContainsString('clever_image_suffix', $map);
+        $this->assertStringContainsString('clevers_io_webp_suffix', $map);
     }
 
     public function test_get_nginx_location_block_returns_separate_snippet(): void
@@ -51,5 +52,7 @@ final class CIONginxTest extends TestCase
         $this->assertStringContainsString('location ~*', $location);
         $this->assertStringContainsString('try_files', $location);
         $this->assertStringContainsString('add_header Vary', $location);
+        $this->assertStringContainsString('$clevers_io_image_base$clevers_io_webp_suffix', $location);
+        $this->assertStringNotContainsString('$uri$clever_image_suffix', $location);
     }
 }

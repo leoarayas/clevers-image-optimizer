@@ -21,9 +21,12 @@ function clevers_io_is_nginx($server_software = null)
 }
 
 /**
- * Devuelve el bloque `map` que define la variable `$webp_suffix` segun el
- * header Accept del navegador. Va dentro del bloque `http { ... }`, no del
- * `server { ... }`. Si el sitio no soporta AVIF, el cliente no lo recibe.
+ * Devuelve el bloque `map` que define el sufijo WebP segun el header Accept
+ * del navegador. Va dentro del bloque `http { ... }`, no del `server { ... }`.
+ *
+ * AVIF se omite deliberadamente: un solo `map` no puede comprobar si el
+ * sidecar AVIF existe y luego hacer fallback a WebP. Priorizar WebP permite
+ * un fallback correcto al archivo original cuando el sidecar no existe.
  */
 function clevers_io_get_nginx_map_block()
 {
@@ -32,18 +35,17 @@ function clevers_io_get_nginx_map_block()
         [
             '# Clever Image Optimizer — bloque map (http context)',
             '# Pegar DENTRO del bloque http { ... } del nginx.conf, una sola vez por servidor.',
-            'map $http_accept $clever_image_suffix {',
-            '    default         "";',
-            '    "~image/avif"   ".avif";',
-            '    "~image/webp"   ".webp";',
+            'map $http_accept $clevers_io_webp_suffix {',
+            '    default       "";',
+            '    ~*image/webp  ".webp";',
             '}',
         ]
     );
 }
 
 /**
- * Devuelve el bloque `location` que reescribe las peticiones JPG/PNG a su
- * equivalente AVIF/WebP cuando el navegador lo soporta y el archivo existe.
+ * Devuelve el bloque `location` que sirve un sidecar WebP cuando el navegador
+ * lo soporta y el archivo existe.
  * Va DENTRO del bloque `server { ... }` del sitio, idealmente cerca de las
  * reglas existentes de WordPress.
  */
@@ -54,9 +56,11 @@ function clevers_io_get_nginx_location_block()
         [
             '# Clever Image Optimizer — bloque location (server context)',
             '# Pegar DENTRO del bloque server { ... } del sitio, debajo de las reglas de WordPress.',
-            'location ~* ^.+\.(jpe?g|png)$ {',
-            '    add_header Vary "Accept";',
-            '    try_files $uri$clever_image_suffix $uri =404;',
+            '# Requiere que el CDN varie su cache por Accept. Cloudflare por defecto no lo hace;',
+            '# con Cloudflare usa URLs .webp explicitas o configura la cache key antes de activarlo.',
+            'location ~* ^(?<clevers_io_image_base>.+)\.(?:jpe?g|png)$ {',
+            '    add_header Vary "Accept" always;',
+            '    try_files $clevers_io_image_base$clevers_io_webp_suffix $uri =404;',
             '}',
         ]
     );

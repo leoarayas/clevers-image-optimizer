@@ -6,6 +6,10 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- The Nginx WebP snippet now replaces the original JPG/PNG extension when it
+  resolves a sidecar, and warns that CDNs must vary their cache by `Accept`.
+
 ### Added
 - WebP is now supported by the Media Library re-optimization flow and upload
   safety net.
