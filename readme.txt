@@ -4,7 +4,7 @@ Donate link: https://clevers.dev
 Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
 Tested up to: 7.1
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -48,6 +48,9 @@ The plugin shows capability status in settings. If `imageavif` is not available,
 No, if you use the official release ZIP. Composer is only needed for local development and CI.
 
 == Changelog ==
+= 1.0.5 =
+* Added Brizy integration: compiled local JPG/PNG URLs are served as explicit WebP sidecars when available.
+
 = 1.0.4 =
 * Fixed the Nginx WebP snippet so it resolves `image.webp` sidecars rather than appending to the original extension.
 * Added a Cloudflare cache-key warning to the Nginx snippet.

@@ -6,6 +6,10 @@ project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Brizy adapter rewrites local JPG/PNG URLs in compiled content to explicit
+  WebP sidecars when they exist, without modifying Brizy data or media GUIDs.
+
 ### Fixed
 - The Nginx WebP snippet now replaces the original JPG/PNG extension when it
   resolves a sidecar, and warns that CDNs must vary their cache by `Accept`.
