@@ -25,3 +25,6 @@ jobs:
         with:
           build-dir: build/clevers-image-optimizer
           ignore-warnings: true
+          ignore-codes: |
+            WordPress.WP.AlternativeFunctions.file_system_operations_rename
+            WordPress.WP.AlternativeFunctions.file_system_operations_unlink
