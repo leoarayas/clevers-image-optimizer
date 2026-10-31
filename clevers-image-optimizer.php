@@ -31,6 +31,11 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-cio-brizy-adapter.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-media-library.php';
 
+if (defined('WP_CLI') && WP_CLI) {
+    require_once plugin_dir_path(__FILE__) . 'includes/class-cio-cli.php';
+    WP_CLI::add_command('clevers-io', 'Clevers_IO_CLI');
+}
+
 function clevers_io_init()
 {
     $optimizer = new Clevers_IO_Optimizer();

@@ -108,6 +108,27 @@ if (!function_exists('absint')) {
     }
 }
 
+if (!function_exists('get_attached_file')) {
+    function get_attached_file($attachment_id, $unfiltered = false)
+    {
+        return '';
+    }
+}
+
+if (!function_exists('get_post')) {
+    function get_post($post = null, $output = 'OBJECT', $filter = 'raw')
+    {
+        return null;
+    }
+}
+
+if (!function_exists('get_the_title')) {
+    function get_the_title($post = 0)
+    {
+        return '';
+    }
+}
+
 if (!function_exists('wp_is_writable')) {
     function wp_is_writable($path)
     {

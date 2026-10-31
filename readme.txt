@@ -49,6 +49,7 @@ No, if you use the official release ZIP. Composer is only needed for local devel
 
 == Changelog ==
 = 1.0.7 =
+* Added WP-CLI command suite (`wp clevers-io`): status, process-queue, optimize-attachment, queue-all, and recompress-webp.
 * Preserve the first `.bak` created for a WebP file, even if it is recompressed again later.
 
 = 1.0.6 =

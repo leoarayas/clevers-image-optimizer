@@ -2,6 +2,14 @@
 
 ## [1.0.7] - 2026-10-30
 
+### Added
+- WP-CLI command suite (`wp clevers-io`):
+  - `wp clevers-io status`: environment diagnostics, queue health, and settings summary.
+  - `wp clevers-io process-queue`: non-blocking batch queue processing with terminal progress bar.
+  - `wp clevers-io optimize-attachment <id>`: direct optimization of a specific attachment.
+  - `wp clevers-io queue-all`: bulk enqueuing of media library images.
+  - `wp clevers-io recompress-webp`: terminal recompression of existing WebP files with bytes saved metric.
+
 ### Fixed
 - Preserve the first `.bak` backup when an existing WebP is recompressed again.
 

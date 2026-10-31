@@ -596,9 +596,7 @@ class Clevers_IO_Optimizer
 
     private function get_webp_path($file)
     {
-        $info = pathinfo($file);
-
-        return $info['dirname'] . '/' . $info['filename'] . '.webp';
+        return Clevers_IO_Utils::get_webp_path($file);
     }
 
     private function get_avif_path($file)

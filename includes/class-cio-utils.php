@@ -31,6 +31,18 @@ class Clevers_IO_Utils
 
         return $value;
     }
+
+    /**
+     * Obtiene la ruta del archivo WebP correspondiente a una ruta de imagen original.
+     *
+     * @param string $file Ruta absoluta al archivo.
+     * @return string
+     */
+    public static function get_webp_path($file)
+    {
+        $info = pathinfo($file);
+        return $info['dirname'] . '/' . $info['filename'] . '.webp';
+    }
 }
 
 if (!class_exists('CIO_Utils', false)) {
