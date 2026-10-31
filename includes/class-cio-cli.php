@@ -209,15 +209,25 @@ class Clevers_IO_CLI
         } else {
             global $wpdb;
             $limit = isset($assoc_args['limit']) ? (int) $assoc_args['limit'] : 100;
-            $limit_sql = $limit > 0 ? "LIMIT {$limit}" : '';
 
-            $attachment_ids = $wpdb->get_col("
-                SELECT ID FROM {$wpdb->posts}
-                WHERE post_type = 'attachment'
-                AND (post_mime_type LIKE 'image/%')
-                ORDER BY ID DESC
-                {$limit_sql}
-            ");
+            if ($limit > 0) {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+                $attachment_ids = $wpdb->get_col(
+                    $wpdb->prepare(
+                        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE %s ORDER BY ID DESC LIMIT %d",
+                        $wpdb->esc_like('image/') . '%',
+                        $limit
+                    )
+                );
+            } else {
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+                $attachment_ids = $wpdb->get_col(
+                    $wpdb->prepare(
+                        "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE %s ORDER BY ID DESC",
+                        $wpdb->esc_like('image/') . '%'
+                    )
+                );
+            }
             $attachment_ids = array_map('intval', (array) $attachment_ids);
         }
 
