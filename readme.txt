@@ -4,7 +4,7 @@ Donate link: https://clevers.dev
 Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
 Tested up to: 7.1
-Stable tag: 1.0.7
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -48,6 +48,10 @@ The plugin shows capability status in settings. If `imageavif` is not available,
 No, if you use the official release ZIP. Composer is only needed for local development and CI.
 
 == Changelog ==
+= 1.1.0 =
+* Feature: HTML `<picture>` fallback mode on `the_content`, `wp_get_attachment_image`, and thumbnails with admin toggle.
+* Compatibility: Seamless WebP/AVIF delivery on Nginx, Cloudflare, and hosts without `.htaccess` rewrite access.
+
 = 1.0.7 =
 * Added WP-CLI command suite (`wp clevers-io`): status, process-queue, optimize-attachment, queue-all, and recompress-webp.
 * Preserve the first `.bak` created for a WebP file, even if it is recompressed again later.

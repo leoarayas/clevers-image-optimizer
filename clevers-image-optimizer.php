@@ -3,7 +3,7 @@
  * Plugin Name: Clevers Image Optimizer
  * Description: Optimización local de imágenes + WebP + AVIF para sitios gestionados por Clever.
  * Author: Clevers.dev
- * Version: 1.0.7
+ * Version: 1.1.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * License: GPLv2 or later
@@ -28,6 +28,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-cio-optimizer.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-safety-net.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-diagnostics.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-brizy-adapter.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-cio-picture-rewriter.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-admin.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-cio-media-library.php';
 
@@ -45,6 +46,9 @@ function clevers_io_init()
 
     $brizy_adapter = new Clevers_IO_Brizy_Adapter();
     $brizy_adapter->register();
+
+    $picture_rewriter = new Clevers_IO_Picture_Rewriter();
+    $picture_rewriter->register();
 
     if (is_admin()) {
         new Clevers_IO_Admin($optimizer);

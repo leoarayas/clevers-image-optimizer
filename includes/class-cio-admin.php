@@ -108,6 +108,12 @@ class Clevers_IO_Admin
             'default' => Clevers_IO_Safety_Net::DEFAULT_MAX_DIMENSION,
             'sanitize_callback' => [$this, 'sanitize_safety_net_dimension'],
         ]);
+
+        register_setting('clevers_io_settings_group', 'clevers_io_picture_fallback', [
+            'type' => 'string',
+            'default' => '0',
+            'sanitize_callback' => [$this, 'sanitize_checkbox'],
+        ]);
     }
 
     public function sanitize_safety_net_dimension($value)
@@ -362,6 +368,25 @@ class Clevers_IO_Admin
                         <td>
                             <input type="number" name="clevers_io_max_dimension" value="<?php echo esc_attr(get_option(Clevers_IO_Optimizer::OPTION_MAX_DIMENSION, 0)); ?>" min="0" max="8192" />
                             <p class="description"><?php esc_html_e('0 desactiva el redimensionamiento. Usa, por ejemplo, 1200 para imágenes de contenido mostradas en columnas.', 'clevers-image-optimizer'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3><?php esc_html_e('Entrega de imágenes en Frontend', 'clevers-image-optimizer'); ?></h3>
+                <p class="description">
+                    <?php esc_html_e('Permite entregar imágenes WebP/AVIF mediante reemplazo HTML dinámico, sin depender de la configuración del servidor web.', 'clevers-image-optimizer'); ?>
+                </p>
+                <table class="form-table">
+                    <tr valign="top">
+                        <th scope="row"><?php esc_html_e('Reemplazo HTML (<picture>)', 'clevers-image-optimizer'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="clevers_io_picture_fallback" value="1" <?php checked('1', (string) get_option('clevers_io_picture_fallback', '0')); ?> />
+                                <?php esc_html_e('Reemplazar etiquetas <img> por <picture> en el contenido', 'clevers-image-optimizer'); ?>
+                            </label>
+                            <p class="description">
+                                <?php esc_html_e('Envuelve automáticamente las imágenes en <picture> con fuentes WebP (y AVIF si está habilitado) en the_content, imágenes destacadas y miniaturas. Recomendado si tu servidor usa Nginx, Cloudflare o un proxy inverso sin soporte de reglas .htaccess.', 'clevers-image-optimizer'); ?>
+                            </p>
                         </td>
                     </tr>
                 </table>

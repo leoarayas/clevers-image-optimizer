@@ -140,6 +140,10 @@ final class CIOSafetyNetTest extends TestCase
 
     private function createTestJpeg(int $width, int $height): string
     {
+        if (!function_exists('imagecreatetruecolor')) {
+            $this->markTestSkipped('GD extension not available in this PHP CLI environment.');
+        }
+
         $path = $this->tmpDir . '/' . $width . 'x' . $height . '.jpg';
         $image = imagecreatetruecolor($width, $height);
         imagefill($image, 0, 0, imagecolorallocate($image, 100, 150, 200));

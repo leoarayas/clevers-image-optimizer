@@ -198,3 +198,4 @@ require_once dirname(__DIR__) . '/includes/class-cio-optimizer.php';
 require_once dirname(__DIR__) . '/includes/class-cio-diagnostics.php';
 require_once dirname(__DIR__) . '/includes/nginx.php';
 require_once dirname(__DIR__) . '/includes/class-cio-brizy-adapter.php';
+require_once dirname(__DIR__) . '/includes/class-cio-picture-rewriter.php';
