@@ -2,17 +2,18 @@ name: WordPress.org plugin check
 
 on:
   push:
-    branches: [" main\]
- pull_request:
+    branches:
+      - main
+  pull_request:
 
 jobs:
- plugin-check:
- name: Plugin check (WordPress.org standards)
- runs-on: ubuntu-latest
+  plugin-check:
+    name: Plugin check (WordPress.org standards)
+    runs-on: ubuntu-latest
 
- steps:
- - name: Check out repo
- uses: actions/checkout@v4
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
 
- - name: Run WordPress Plugin Check
- uses: wordpress/plugin-check-action@v1
+      - name: Run WordPress Plugin Check
+        uses: wordpress/plugin-check-action@v1
