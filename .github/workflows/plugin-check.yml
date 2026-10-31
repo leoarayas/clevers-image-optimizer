@@ -15,7 +15,13 @@ jobs:
       - name: Check out repo
         uses: actions/checkout@v4
 
+      - name: Stage clean distribution build
+        run: |
+          mkdir -p build/clevers-image-optimizer
+          rsync -a --exclude-from=.distignore --exclude="build" ./ build/clevers-image-optimizer/
+
       - name: Run WordPress Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
+          build-dir: build/clevers-image-optimizer
           ignore-warnings: true
