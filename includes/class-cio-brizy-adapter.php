@@ -30,7 +30,7 @@ class Clevers_IO_Brizy_Adapter
             'baseurl' => isset($config['baseurl']) ? (string) $config['baseurl'] : '',
         ];
         $site_url = isset($config['site_url']) ? (string) $config['site_url'] : $this->uploads['baseurl'];
-        $this->site_host = (string) parse_url($site_url, PHP_URL_HOST);
+        $this->site_host = (string) wp_parse_url($site_url, PHP_URL_HOST);
     }
 
     public function register()
@@ -68,13 +68,13 @@ class Clevers_IO_Brizy_Adapter
             return $this->replacement_cache[$url] . $suffix;
         }
 
-        $path = parse_url($url, PHP_URL_PATH);
-        $host = parse_url($url, PHP_URL_HOST);
+        $path = wp_parse_url($url, PHP_URL_PATH);
+        $host = wp_parse_url($url, PHP_URL_HOST);
         if (!$path || ($host && $this->site_host && strcasecmp($host, $this->site_host) !== 0)) {
             return $url . $suffix;
         }
 
-        $base_path = (string) parse_url($this->uploads['baseurl'], PHP_URL_PATH);
+        $base_path = (string) wp_parse_url($this->uploads['baseurl'], PHP_URL_PATH);
         $base_path = rtrim($base_path, '/');
         if ($base_path === '' || strpos($path, $base_path . '/') !== 0) {
             return $url . $suffix;

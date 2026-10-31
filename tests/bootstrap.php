@@ -108,6 +108,13 @@ if (!function_exists('absint')) {
     }
 }
 
+if (!function_exists('wp_parse_url')) {
+    function wp_parse_url($url, $component = -1)
+    {
+        return parse_url($url, $component);
+    }
+}
+
 if (!function_exists('get_attached_file')) {
     function get_attached_file($attachment_id, $unfiltered = false)
     {
