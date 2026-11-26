@@ -14,7 +14,9 @@ if (!defined('ABSPATH')) {
 function clevers_io_is_nginx($server_software = null)
 {
     if ($server_software === null) {
-        $server_software = isset($_SERVER['SERVER_SOFTWARE']) ? (string) $_SERVER['SERVER_SOFTWARE'] : '';
+        $server_software = isset($_SERVER['SERVER_SOFTWARE'])
+            ? sanitize_text_field((string) wp_unslash($_SERVER['SERVER_SOFTWARE']))
+            : '';
     }
 
     return stripos($server_software, 'nginx') !== false;

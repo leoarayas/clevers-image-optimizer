@@ -159,6 +159,7 @@ class Clevers_IO_CLI
         global $wpdb;
         $optimizer = new Clevers_IO_Optimizer();
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- WP-CLI bulk queue command.
         $ids = $wpdb->get_col("
             SELECT ID FROM {$wpdb->posts}
             WHERE post_type = 'attachment'
@@ -211,7 +212,7 @@ class Clevers_IO_CLI
             $limit = isset($assoc_args['limit']) ? (int) $assoc_args['limit'] : 100;
 
             if ($limit > 0) {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- WP-CLI recompression scan.
                 $attachment_ids = $wpdb->get_col(
                     $wpdb->prepare(
                         "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE %s ORDER BY ID DESC LIMIT %d",
@@ -220,7 +221,7 @@ class Clevers_IO_CLI
                     )
                 );
             } else {
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- WP-CLI recompression scan.
                 $attachment_ids = $wpdb->get_col(
                     $wpdb->prepare(
                         "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE %s ORDER BY ID DESC",
