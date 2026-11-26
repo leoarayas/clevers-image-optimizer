@@ -3,8 +3,8 @@ Contributors: cleversdev
 Donate link: https://clevers.dev
 Tags: image-optimization, webp, avif, media-library, performance
 Requires at least: 6.0
-Tested up to: 7.1
-Stable tag: 1.1.0
+Tested up to: 7.2
+Stable tag: 1.1.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -48,6 +48,11 @@ The plugin shows capability status in settings. If `imageavif` is not available,
 No, if you use the official release ZIP. Composer is only needed for local development and CI.
 
 == Changelog ==
+= 1.1.1 =
+* Compatibility: Tested up to WordPress 7.2 and PHP 8.6.
+* Compatibility: Support 3rd `$context` parameter on `wp_generate_attachment_metadata` for WordPress 7.2 client-side uploads, preserving `original_size` on `'update'` passes.
+* Compatibility: Validate `imagewebp()`/`imageavif()` return values, unlink 0-byte sidecars on failure, and clamp `imagescale()` dimensions to `max(1, ...)` for PHP 8.6.
+
 = 1.1.0 =
 * Feature: HTML `<picture>` fallback mode on `the_content`, `wp_get_attachment_image`, and thumbnails with admin toggle.
 * Compatibility: Seamless WebP/AVIF delivery on Nginx, Cloudflare, and hosts without `.htaccess` rewrite access.

@@ -121,6 +121,18 @@ final class CIOSafetyNetTest extends TestCase
         $this->assertSame(1280, $height);
     }
 
+    public function test_resize_file_clamps_extreme_aspect_ratio_dimension_to_at_least_one(): void
+    {
+        $source = $this->createTestJpeg(2000, 1);
+        $safety = new Clevers_IO_Safety_Net(['enabled' => true, 'max_dimension' => 500]);
+
+        $result = $safety->resize_file($source);
+
+        [$width, $height] = getimagesize($result);
+        $this->assertSame(500, $width);
+        $this->assertGreaterThanOrEqual(1, $height);
+    }
+
     public function test_resize_file_returns_false_when_source_missing(): void
     {
         $safety = new Clevers_IO_Safety_Net(['enabled' => true]);

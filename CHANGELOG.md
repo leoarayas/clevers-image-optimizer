@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.1.1] - 2026-11-26
+
+### Fixed
+- WordPress 7.2 client-side upload compatibility: accept the 3rd `$context` parameter on `wp_generate_attachment_metadata` and preserve `original_size` on `'update'` passes.
+- PHP 8.6 GD compatibility: validate `imagewebp()`/`imageavif()` return values, unlink 0-byte sidecars on failure, and clamp `imagescale()` dimensions to `max(1, ...)` for extreme aspect ratios.
+
+### Changed
+- Bumped `Tested up to` to WordPress 7.2.
+
 ## [1.0.7] - 2026-10-30
 
 ### Added

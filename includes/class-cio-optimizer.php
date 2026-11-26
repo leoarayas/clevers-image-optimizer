@@ -16,14 +16,24 @@ class Clevers_IO_Optimizer
 
     public function __construct()
     {
-        add_filter('wp_generate_attachment_metadata', [$this, 'queue_on_upload'], 10, 2);
+        add_filter('wp_generate_attachment_metadata', [$this, 'queue_on_upload'], 10, 3);
         add_action(self::CRON_HOOK, [$this, 'process_queue']);
         // Compatibilidad con tareas programadas antiguas
         add_action('cio_process_queue', [$this, 'process_queue']);
     }
 
-    public function queue_on_upload($metadata, $attachment_id)
+    /**
+     * Encola el adjunto al generar metadatos (soporta contexto 'create' y
+     * el contexto 'update' usado por el procesamiento client-side de WP 7.2).
+     *
+     * @param mixed  $metadata
+     * @param int    $attachment_id
+     * @param string $context
+     * @return mixed
+     */
+    public function queue_on_upload($metadata, $attachment_id, $context = 'create')
     {
+        unset($context);
         $this->enqueue_attachment($attachment_id);
 
         return $metadata;
@@ -156,10 +166,26 @@ class Clevers_IO_Optimizer
         }
 
         if ($this->is_supported_image_path($original) && file_exists($original)) {
-            $stats['original_size'] = (int) filesize($original);
+            $current_original_size = (int) filesize($original);
+            $existing_stats = function_exists('get_post_meta') ? get_post_meta($attachment_id, '_clevers_io_stats', true) : null;
+            if (!is_array($existing_stats) && function_exists('get_post_meta')) {
+                $existing_stats = get_post_meta($attachment_id, '_cio_stats', true);
+            }
+
+            if (
+                is_array($existing_stats)
+                && !empty($existing_stats['original_size'])
+                && !empty($existing_stats['optimized_size'])
+                && (int) $existing_stats['optimized_size'] === $current_original_size
+            ) {
+                $stats['original_size'] = (int) $existing_stats['original_size'];
+            } else {
+                $stats['original_size'] = $current_original_size;
+            }
 
             $this->resize_file($original, $this->get_max_dimension());
             $this->optimize_file($original);
+            clearstatcache(true, $original);
             $stats['optimized_size'] = (int) filesize($original);
 
             $this->generate_webp($original);
@@ -251,8 +277,19 @@ class Clevers_IO_Optimizer
         }
 
         $quality = $this->get_webp_quality();
-        imagewebp($img, $webp, $quality);
+        $saved = imagewebp($img, $webp, $quality);
         $this->destroy_image_resource($img);
+
+        clearstatcache(true, $webp);
+        if (!$saved || (file_exists($webp) && (int) filesize($webp) === 0)) {
+            if (file_exists($webp)) {
+                @unlink($webp);
+            }
+            Clevers_IO_Logger::warn('generate_webp failed', [
+                'source' => $file,
+                'target' => $webp,
+            ], 'optimizer');
+        }
     }
 
     /**
@@ -379,8 +416,19 @@ class Clevers_IO_Optimizer
         }
 
         $quality = $this->get_avif_quality();
-        imageavif($img, $avif, $quality);
+        $saved = imageavif($img, $avif, $quality);
         $this->destroy_image_resource($img);
+
+        clearstatcache(true, $avif);
+        if (!$saved || (file_exists($avif) && (int) filesize($avif) === 0)) {
+            if (file_exists($avif)) {
+                @unlink($avif);
+            }
+            Clevers_IO_Logger::warn('generate_avif failed', [
+                'source' => $file,
+                'target' => $avif,
+            ], 'optimizer');
+        }
     }
 
     public function get_queue_count()
@@ -437,7 +485,9 @@ class Clevers_IO_Optimizer
         }
 
         $ratio = $width >= $height ? $max_dimension / $width : $max_dimension / $height;
-        $target = imagescale($source, (int) round($width * $ratio), (int) round($height * $ratio));
+        $new_width = max(1, (int) round($width * $ratio));
+        $new_height = max(1, (int) round($height * $ratio));
+        $target = imagescale($source, $new_width, $new_height);
         $this->destroy_image_resource($source);
         if ($target === false) {
             return false;

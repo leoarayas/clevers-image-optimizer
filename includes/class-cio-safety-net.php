@@ -133,8 +133,8 @@ class Clevers_IO_Safety_Net
         }
 
         $ratio = $width > $height ? $max / $width : $max / $height;
-        $new_width = (int) round($width * $ratio);
-        $new_height = (int) round($height * $ratio);
+        $new_width = max(1, (int) round($width * $ratio));
+        $new_height = max(1, (int) round($height * $ratio));
 
         $resized = imagescale($image, $new_width, $new_height);
         if ($resized === false) {

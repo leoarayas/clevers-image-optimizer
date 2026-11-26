@@ -250,4 +250,41 @@ final class CIOOptimizerTest extends TestCase
             update_option('clevers_io_webp_quality', 80);
         }
     }
+
+    public function test_queue_on_upload_accepts_wordpress_7_2_context_parameter(): void
+    {
+        $GLOBALS['mock_options'] = [];
+        $optimizer = new Clevers_IO_Optimizer();
+
+        $metaCreate = ['file' => '2026/11/sample.jpg'];
+        $metaUpdate = ['file' => '2026/11/sample.jpg', 'sizes' => ['thumbnail' => ['file' => 'sample-150x150.jpg']]];
+
+        $this->assertSame($metaCreate, $optimizer->queue_on_upload($metaCreate, 42, 'create'));
+        $this->assertSame($metaUpdate, $optimizer->queue_on_upload($metaUpdate, 42, 'update'));
+        $this->assertSame(1, $optimizer->get_queue_count());
+    }
+
+    public function test_resize_file_clamps_extreme_aspect_ratio_dimension_to_at_least_one(): void
+    {
+        if (!function_exists('imagejpeg')) {
+            $this->markTestSkipped('GD no incluye soporte JPEG.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'cio-aspect-') . '.jpg';
+        $image = imagecreatetruecolor(2000, 1);
+        imagefill($image, 0, 0, imagecolorallocate($image, 120, 120, 120));
+        imagejpeg($image, $path, 85);
+        unset($image);
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+
+            $this->assertTrue($optimizer->resize_file($path, 500));
+            [$width, $height] = getimagesize($path);
+            $this->assertSame(500, $width);
+            $this->assertGreaterThanOrEqual(1, $height);
+        } finally {
+            @unlink($path);
+        }
+    }
 }
