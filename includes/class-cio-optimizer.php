@@ -320,6 +320,14 @@ class Clevers_IO_Optimizer
             return false;
         }
 
+        if ($this->is_animated_webp($file) || $this->is_animated_webp($target_webp)) {
+            Clevers_IO_Logger::debug('recompress_webp: omitiendo WebP animado para preservar frames', [
+                'source' => $file,
+                'target' => $target_webp,
+            ], 'optimizer');
+            return false;
+        }
+
         $old_size = filesize($target_webp);
         if ($old_size === false || $old_size <= 0) {
             return false;
@@ -465,7 +473,7 @@ class Clevers_IO_Optimizer
     public function resize_file($file, $max_dimension)
     {
         $max_dimension = absint($max_dimension);
-        if ($max_dimension === 0 || !file_exists($file)) {
+        if ($max_dimension === 0 || !file_exists($file) || $this->is_animated_webp($file)) {
             return false;
         }
 
@@ -606,7 +614,47 @@ class Clevers_IO_Optimizer
             return null;
         }
 
+        // GD imagewebp()/imageavif() no soportan imagenes indexadas (paleta de 8 bits).
+        if (function_exists('imageistruecolor') && !imageistruecolor($img)) {
+            if (function_exists('imagepalettetotruecolor')) {
+                imagepalettetotruecolor($img);
+            }
+            if (function_exists('imagealphablending') && function_exists('imagesavealpha')) {
+                imagealphablending($img, false);
+                imagesavealpha($img, true);
+            }
+        }
+
         return $img;
+    }
+
+    /**
+     * Detecta si un archivo WebP contiene animacion (VP8X bit de animacion o chunk ANIM).
+     *
+     * @param string $file Ruta absoluta al archivo.
+     * @return bool
+     */
+    public function is_animated_webp($file)
+    {
+        if (!preg_match('/\.webp$/i', (string) $file) || !is_file($file) || !is_readable($file)) {
+            return false;
+        }
+
+        $head = file_get_contents($file, false, null, 0, 4096);
+        if ($head === false || strlen($head) < 21) {
+            return false;
+        }
+
+        if (substr($head, 0, 4) === 'RIFF' && substr($head, 8, 7) === 'WEBPVP8') {
+            if (substr($head, 12, 4) === 'VP8X' && (ord($head[20]) & 0x02) !== 0) {
+                return true;
+            }
+            if (strpos($head, 'ANIM') !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

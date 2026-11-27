@@ -64,6 +64,18 @@ RSYNC_EXCLUDES+=(--exclude "svn-dist*")
 
 rsync -a "${RSYNC_EXCLUDES[@]}" ./ "$STAGE_DIR"
 
+if [[ -f "composer.json" ]] && command -v composer >/dev/null 2>&1; then
+  cp composer.json "$STAGE_DIR/composer.json"
+  if [[ -f "composer.lock" ]]; then
+    cp composer.lock "$STAGE_DIR/composer.lock"
+  fi
+  (
+    cd "$STAGE_DIR"
+    composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+  )
+  rm -rf "$STAGE_DIR/composer.lock" "$STAGE_DIR/vendor/bin"
+fi
+
 if [[ -d "build" ]]; then
   rsync -a build "$STAGE_DIR/build"
 fi
