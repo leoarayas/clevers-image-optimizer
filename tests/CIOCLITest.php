@@ -93,6 +93,16 @@ namespace {
             $this->assertStringContainsString('Clevers Image Optimizer Status', $joined);
             $this->assertStringContainsString('Queue size:', $joined);
             $this->assertStringContainsString('WebP generation:', $joined);
+            $this->assertStringContainsString('WebP quality: 80', $joined);
+        }
+
+        public function test_status_reads_clevers_io_webp_quality_option(): void
+        {
+            $GLOBALS['mock_options']['clevers_io_webp_quality'] = 75;
+            $this->cli->status([], []);
+
+            $joined = implode("\n", WP_CLI::$lines);
+            $this->assertStringContainsString('WebP quality: 75', $joined);
         }
 
         public function test_process_queue_reports_when_empty(): void

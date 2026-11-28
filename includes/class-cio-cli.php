@@ -34,7 +34,13 @@ class Clevers_IO_CLI
         WP_CLI::line(sprintf('WebP generation: %s', get_option('clevers_io_generate_webp', 1) ? 'Enabled' : 'Disabled'));
         WP_CLI::line(sprintf('WebP recompression: %s', $optimizer->is_recompress_webp_enabled() ? 'Enabled' : 'Disabled'));
         WP_CLI::line(sprintf('AVIF generation: %s', get_option('clevers_io_generate_avif', 0) ? 'Enabled' : 'Disabled'));
-        WP_CLI::line(sprintf('WebP quality: %d', (int) get_option('clevers_io_quality_webp', 82)));
+        $webp_quality = Clevers_IO_Utils::sanitize_quality(
+            get_option('clevers_io_webp_quality', get_option('cio_webp_quality', 80)),
+            0,
+            100,
+            80
+        );
+        WP_CLI::line(sprintf('WebP quality: %d', $webp_quality));
 
         if (class_exists('Clevers_IO_Diagnostics')) {
             WP_CLI::line('');
@@ -68,6 +74,7 @@ class Clevers_IO_CLI
      *     wp clevers-io process-queue
      *     wp clevers-io process-queue --limit=100
      *
+     * @subcommand process-queue
      * @when after_wp_load
      */
     public function process_queue($args, $assoc_args)
@@ -117,6 +124,7 @@ class Clevers_IO_CLI
      *
      *     wp clevers-io optimize-attachment 1234
      *
+     * @subcommand optimize-attachment
      * @when after_wp_load
      */
     public function optimize_attachment($args, $assoc_args)
@@ -152,6 +160,7 @@ class Clevers_IO_CLI
      *
      *     wp clevers-io queue-all
      *
+     * @subcommand queue-all
      * @when after_wp_load
      */
     public function queue_all($args, $assoc_args)
@@ -199,6 +208,7 @@ class Clevers_IO_CLI
      *     wp clevers-io recompress-webp --attachment-id=542
      *     wp clevers-io recompress-webp --limit=50
      *
+     * @subcommand recompress-webp
      * @when after_wp_load
      */
     public function recompress_webp($args, $assoc_args)

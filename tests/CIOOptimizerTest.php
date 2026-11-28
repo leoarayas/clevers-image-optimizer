@@ -287,4 +287,62 @@ final class CIOOptimizerTest extends TestCase
             @unlink($path);
         }
     }
+
+    public function test_generate_webp_converts_palette_png_to_valid_webp(): void
+    {
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD no incluye soporte WebP.');
+        }
+
+        $png = tempnam(sys_get_temp_dir(), 'cio-palette-') . '.png';
+        $webp = Clevers_IO_Utils::get_webp_path($png);
+
+        $image = imagecreate(120, 80);
+        $bg = imagecolorallocate($image, 20, 40, 80);
+        $fg = imagecolorallocate($image, 240, 200, 30);
+        imagefilledrectangle($image, 10, 10, 100, 70, $fg);
+        imagepng($image, $png);
+        if (PHP_VERSION_ID < 80500) {
+            imagedestroy($image);
+        }
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+            $optimizer->generate_webp($png);
+
+            $this->assertFileExists($webp);
+            $this->assertGreaterThan(0, filesize($webp));
+            $info = getimagesize($webp);
+            $this->assertIsArray($info);
+            $this->assertSame(IMAGETYPE_WEBP, $info[2]);
+        } finally {
+            @unlink($png);
+            @unlink($webp);
+        }
+    }
+
+    public function test_recompress_webp_skips_animated_webp(): void
+    {
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD no incluye soporte WebP.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'cio-anim-') . '.webp';
+        $bak_path = $path . '.bak';
+
+        // Cabecera RIFF/WEBPVP8X minima con flag de animacion (0x02) + chunk ANIM
+        $animated_bytes = "RIFF\x30\x00\x00\x00WEBPVP8X\x0a\x00\x00\x00\x02\x00\x00\x00\x09\x00\x00\x09\x00\x00ANIM\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+        file_put_contents($path, $animated_bytes);
+
+        try {
+            $optimizer = new Clevers_IO_Optimizer();
+            $this->assertTrue($optimizer->is_animated_webp($path));
+            $this->assertFalse($optimizer->recompress_webp($path));
+            $this->assertFileDoesNotExist($bak_path);
+            $this->assertSame($animated_bytes, file_get_contents($path));
+        } finally {
+            @unlink($path);
+            @unlink($bak_path);
+        }
+    }
 }
